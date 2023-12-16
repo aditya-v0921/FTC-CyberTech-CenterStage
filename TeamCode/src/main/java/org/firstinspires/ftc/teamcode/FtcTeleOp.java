@@ -34,11 +34,16 @@ public class FtcTeleOp extends LinearOpMode {
         Servo continuousServo = hardwareMap.get(Servo.class, "Outtake");
         Servo dropIntake = hardwareMap.get(Servo.class, "dropIntake");
         Servo fourBar = hardwareMap.get(Servo.class, "fourBar");
+        Servo leftClimb = hardwareMap.get(Servo.class, "leftClimb");
+        Servo rightClimb = hardwareMap.get(Servo.class, "rightClimb");
+        Servo drone = hardwareMap.get(Servo.class, "drone");
 
         fourBar.setPosition(0.2); // Four bar Down
         System.out.print(dropIntake.getPosition());
         dropIntake.setPosition(0.32); // Intake Up
         continuousServo.setPosition(0.5); // Stop Position
+
+        rightClimb.setDirection(Servo.Direction.REVERSE);
 
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -168,6 +173,23 @@ public class FtcTeleOp extends LinearOpMode {
                 motorWinch.setPower(-0.5);
             } else {
                 motorWinch.setPower(0);
+            }
+
+            if (gamepad2.x) {
+                leftClimb.setPosition(0.1);
+                rightClimb.setPosition(-0.1);
+            } else {
+                // Stop the servos when the X button is released
+                leftClimb.setPosition(0.5); // Assuming 0.5 is the stop position for your servo
+                rightClimb.setPosition(0.5); // Adjust the stop position as per your servo's configuration
+            }
+
+// Update the position of the drone servo only when the Y button is pressed
+            if (gamepad2.y) {
+                drone.setPosition(-0.15);
+            } else {
+                // Stop the drone servo when the Y button is released
+                drone.setPosition(0.5); // Adjust this to the stop position of your drone servo
             }
 
             if(gamepad1.y){
