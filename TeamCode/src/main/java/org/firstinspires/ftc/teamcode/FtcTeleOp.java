@@ -196,7 +196,7 @@ public class FtcTeleOp extends LinearOpMode {
 
             if(gamepad1.y){
                 // Define a tolerance range for the motor position
-                int tolerance = 50; // You can adjust this value based on your setup
+                int tolerance = 100; // You can adjust this value based on your setup
 
                 fourBar.setPosition(-0.2);
                 sleep(500);
