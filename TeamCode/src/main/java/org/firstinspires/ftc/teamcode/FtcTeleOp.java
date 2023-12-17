@@ -43,6 +43,8 @@ public class FtcTeleOp extends LinearOpMode {
         dropIntake.setPosition(0.32); // Intake Up
         continuousServo.setPosition(0.5); // Stop Position
 
+        drone.setDirection(Servo.Direction.REVERSE);
+
         rightClimb.setDirection(Servo.Direction.REVERSE);
 
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -186,7 +188,7 @@ public class FtcTeleOp extends LinearOpMode {
 
 // Update the position of the drone servo only when the Y button is pressed
             if (gamepad2.y) {
-                drone.setPosition(-0.15);
+                drone.setPosition(0.15);
             } else {
                 // Stop the drone servo when the Y button is released
                 drone.setPosition(0.5); // Adjust this to the stop position of your drone servo
