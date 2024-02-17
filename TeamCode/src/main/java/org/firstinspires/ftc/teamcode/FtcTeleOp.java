@@ -31,14 +31,14 @@ public class FtcTeleOp extends LinearOpMode {
         DcMotorEx motorIntake = hardwareMap.get(DcMotorEx.class, "Intake");
         DcMotor motorWinch = hardwareMap.get(DcMotor.class, "Winch");
 
-        Servo continuousServo = hardwareMap.get(Servo.class, "Outtake");
-        Servo dropIntake = hardwareMap.get(Servo.class, "dropIntake");
-        Servo fourBar = hardwareMap.get(Servo.class, "fourBar");
+//        Servo continuousServo = hardwareMap.get(Servo.class, "Outtake");
+//        Servo dropIntake = hardwareMap.get(Servo.class, "dropIntake");
+//        Servo fourBar = hardwareMap.get(Servo.class, "fourBar");
 
-        fourBar.setPosition(0.2); // Four bar Down
-        System.out.print(dropIntake.getPosition());
-        dropIntake.setPosition(0.32); // Intake Up
-        continuousServo.setPosition(0.5); // Stop Position
+//        fourBar.setPosition(0.2); // Four bar Down
+//        System.out.print(dropIntake.getPosition());
+//        dropIntake.setPosition(0.32); // Intake Up
+//        continuousServo.setPosition(0.5); // Stop Position
 
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -97,9 +97,9 @@ public class FtcTeleOp extends LinearOpMode {
             motorFrontLeft.setPower(frontLeftPower*speedAdjust);
             motorFrontRight.setPower(frontRightPower*speedAdjust);
 
-            telemetry.addData("right", curRightPos);
-            telemetry.addData("left", curLeftPos);
-            telemetry.update();
+//            telemetry.addData("right", curRightPos);
+//            telemetry.addData("left", curLeftPos);
+//            telemetry.update();
 
             if (gamepad1.left_trigger > 0) {
                 motorLeftLinear.setPower(gamepad1.left_trigger);
@@ -114,7 +114,6 @@ public class FtcTeleOp extends LinearOpMode {
                 motorRightLinear.setPower(0);
                 curRightPos = motorRightLinear.getCurrentPosition();
                 curLeftPos = motorLeftLinear.getCurrentPosition();
-
 
             }
 
@@ -133,32 +132,32 @@ public class FtcTeleOp extends LinearOpMode {
 
             }
 
-            if (gamepad1.a) {
-                // Spin the servo continuously
-                continuousServo.setPosition(3.0); // adjust this value
-            } else {
-                continuousServo.setPosition(0.5); // stop position
-            }
-
+//            if (gamepad1.a) {
+//                // Spin the servo continuously
+//                continuousServo.setPosition(3.0); // adjust this value
+//            } else {
+//                continuousServo.setPosition(0.5); // stop position
+//            }
+//
             if (gamepad1.b) {
                 motorIntake.setPower(2);
             } else {
                 motorIntake.setPower(0);
             }
 
-            if(gamepad1.right_bumper) {
-                dropIntake.setPosition(-0.05);
-                // moves the intake down
-            } else if(gamepad1.left_bumper) {
-                // moves the intake up
-                System.out.print(dropIntake.getPosition());
-                dropIntake.setPosition(0.32);
-            }
-
-            if(gamepad1.x && !previousXState) {  // Check if X is pressed and was not pressed in the last cycle
-                fourBar.setPosition(inOutchecker == 1 ? 0.8 : -0.2);
-                inOutchecker = 1 - inOutchecker; // Toggle the state
-            }
+//            if(gamepad1.right_bumper) {
+//                dropIntake.setPosition(-0.05);
+//                // moves the intake down
+//            } else if(gamepad1.left_bumper) {
+//                // moves the intake up
+//                System.out.print(dropIntake.getPosition());
+//                dropIntake.setPosition(0.32);
+//            }
+//
+//            if(gamepad1.x && !previousXState) {  // Check if X is pressed and was not pressed in the last cycle
+//                fourBar.setPosition(inOutchecker == 1 ? 0.8 : -0.2);
+//                inOutchecker = 1 - inOutchecker; // Toggle the state
+//            }
             previousXState = gamepad1.x;
             //0.6, 1.6
 
@@ -170,40 +169,40 @@ public class FtcTeleOp extends LinearOpMode {
                 motorWinch.setPower(0);
             }
 
-            if(gamepad1.y){
-                // Define a tolerance range for the motor position
-                int tolerance = 50; // You can adjust this value based on your setup
-
-                fourBar.setPosition(-0.2);
-                sleep(500);
-
-                // Moving the linear motors back to their initial positions
-                while(true) { // Loop indefinitely
-                    // Determine direction for each motor
-                    double rightPower = (motorRightLinear.getCurrentPosition() < initialRightPos) ? -0.5 : 0.5;
-                    double leftPower = (motorLeftLinear.getCurrentPosition() < initalLeftPos) ? -0.5 : 0.5;
-
-                    // Check if motors are within the tolerance range of initial positions
-                    boolean rightInPosition = Math.abs(motorRightLinear.getCurrentPosition() - initialRightPos) <= tolerance;
-                    boolean leftInPosition = Math.abs(motorLeftLinear.getCurrentPosition() - initalLeftPos) <= tolerance;
-
-                    // Stop motors if they are in position
-                    if (rightInPosition) {
-                        rightPower = 0;
-                    }
-                    if (leftInPosition) {
-                        leftPower = 0;
-                    }
-
-                    // Set power to motors
-                    motorRightLinear.setPower(rightPower);
-                    motorLeftLinear.setPower(leftPower);
-
-                    // Break the loop if both motors are in position
-                    if (rightInPosition && leftInPosition) {
-                        break;
-                    }
-                }
+//            if(gamepad1.y){
+//                // Define a tolerance range for the motor position
+//                int tolerance = 50; // You can adjust this value based on your setup
+//
+//                fourBar.setPosition(-0.2);
+//                sleep(500);
+//
+//                // Moving the linear motors back to their initial positions
+//                while(true) { // Loop indefinitely
+//                    // Determine direction for each motor
+//                    double rightPower = (motorRightLinear.getCurrentPosition() < initialRightPos) ? -0.5 : 0.5;
+//                    double leftPower = (motorLeftLinear.getCurrentPosition() < initalLeftPos) ? -0.5 : 0.5;
+//
+//                    // Check if motors are within the tolerance range of initial positions
+//                    boolean rightInPosition = Math.abs(motorRightLinear.getCurrentPosition() - initialRightPos) <= tolerance;
+//                    boolean leftInPosition = Math.abs(motorLeftLinear.getCurrentPosition() - initalLeftPos) <= tolerance;
+//
+//                    // Stop motors if they are in position
+//                    if (rightInPosition) {
+//                        rightPower = 0;
+//                    }
+//                    if (leftInPosition) {
+//                        leftPower = 0;
+//                    }
+//
+//                    // Set power to motors
+//                    motorRightLinear.setPower(rightPower);
+//                    motorLeftLinear.setPower(leftPower);
+//
+//                    // Break the loop if both motors are in position
+//                    if (rightInPosition && leftInPosition) {
+//                        break;
+//                    }
+                //}
                 // Stop motors after breaking out of the loop
                 motorRightLinear.setPower(0);
                 motorLeftLinear.setPower(0);
@@ -214,5 +213,3 @@ public class FtcTeleOp extends LinearOpMode {
 
     }
 
-
-}
