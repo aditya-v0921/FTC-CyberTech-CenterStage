@@ -141,7 +141,7 @@ public class FtcTeleOp extends LinearOpMode {
             }
 
             if (gamepad1.b) {
-                motorIntake.setPower(2);
+                motorIntake.setPower(5);
             } else {
                 motorIntake.setPower(0);
             }
@@ -208,8 +208,6 @@ public class FtcTeleOp extends LinearOpMode {
                 motorRightLinear.setPower(0);
                 motorLeftLinear.setPower(0);
             }
-
-
         }
 
     }
