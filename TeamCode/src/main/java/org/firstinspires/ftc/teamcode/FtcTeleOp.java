@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorController;
@@ -9,6 +10,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Func;
 import java.util.Base64;
+import com.acmerobotics.dashboard.FtcDashboard;
+
 
 
 @TeleOp
@@ -31,14 +34,14 @@ public class FtcTeleOp extends LinearOpMode {
         DcMotorEx motorIntake = hardwareMap.get(DcMotorEx.class, "Intake");
         DcMotor motorWinch = hardwareMap.get(DcMotor.class, "Winch");
 
-//        Servo continuousServo = hardwareMap.get(Servo.class, "Outtake");
-//        Servo dropIntake = hardwareMap.get(Servo.class, "dropIntake");
+        Servo continuousServo = hardwareMap.get(Servo.class, "Outtake");
+        Servo dropIntake = hardwareMap.get(Servo.class, "dropIntake");
 //        Servo fourBar = hardwareMap.get(Servo.class, "fourBar");
 
 //        fourBar.setPosition(0.2); // Four bar Down
 //        System.out.print(dropIntake.getPosition());
-//        dropIntake.setPosition(0.32); // Intake Up
-//        continuousServo.setPosition(0.5); // Stop Position
+        dropIntake.setPosition(1); // Intake U
+        continuousServo.setPosition(0.5); // Stop Position
 
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -92,10 +95,10 @@ public class FtcTeleOp extends LinearOpMode {
             double backLeftPower = y - x + rx;
             double backRightPower = y + x - rx;
 
-            motorBackLeft.setPower(backLeftPower*speedAdjust);
-            motorBackRight.setPower(backRightPower*speedAdjust);
-            motorFrontLeft.setPower(frontLeftPower*speedAdjust);
-            motorFrontRight.setPower(frontRightPower*speedAdjust);
+            motorBackLeft.setPower(backLeftPower * speedAdjust);
+            motorBackRight.setPower(backRightPower * speedAdjust);
+            motorFrontLeft.setPower(frontLeftPower * speedAdjust);
+            motorFrontRight.setPower(frontRightPower * speedAdjust);
 
 //            telemetry.addData("right", curRightPos);
 //            telemetry.addData("left", curLeftPos);
@@ -132,42 +135,45 @@ public class FtcTeleOp extends LinearOpMode {
 
             }
 
-//            if (gamepad1.a) {
+            if (gamepad1.a) {
 //                // Spin the servo continuously
-//                continuousServo.setPosition(3.0); // adjust this value
-//            } else {
-//                continuousServo.setPosition(0.5); // stop position
+                continuousServo.setPosition(0); // adjust this value
+            } else {
+                continuousServo.setPosition(0.5); // stop position
 //            }
 //
-            if (gamepad1.b) {
-                motorIntake.setPower(5);
-            } else {
-                motorIntake.setPower(0);
-            }
+                if (gamepad1.b) {
+                    motorIntake.setPower(5);
+                    continuousServo.setPosition(1);
 
-//            if(gamepad1.right_bumper) {
-//                dropIntake.setPosition(-0.05);
-//                // moves the intake down
-//            } else if(gamepad1.left_bumper) {
-//                // moves the intake up
-//                System.out.print(dropIntake.getPosition());
-//                dropIntake.setPosition(0.32);
-//            }
+                } else {
+                    motorIntake.setPower(0);
+                    continuousServo.setPosition(0.5);
+                }
+
+                if (gamepad1.right_bumper) {
+                    dropIntake.setPosition(0.65);
+                    // moves the intake down
+                } else if (gamepad1.left_bumper) {
+                    // moves the intake up
+                    System.out.print(dropIntake.getPosition());
+                    dropIntake.setPosition(1);
+                }
 //
 //            if(gamepad1.x && !previousXState) {  // Check if X is pressed and was not pressed in the last cycle
 //                fourBar.setPosition(inOutchecker == 1 ? 0.8 : -0.2);
 //                inOutchecker = 1 - inOutchecker; // Toggle the state
 //            }
-            previousXState = gamepad1.x;
-            //0.6, 1.6
+                previousXState = gamepad1.x;
+                //0.6, 1.6
 
-            if (gamepad2.a) {
-                motorWinch.setPower(0.5);
-            } else if (gamepad2.b) {
-                motorWinch.setPower(-0.5);
-            } else {
-                motorWinch.setPower(0);
-            }
+                if (gamepad2.a) {
+                    motorWinch.setPower(0.5);
+                } else if (gamepad2.b) {
+                    motorWinch.setPower(-0.5);
+                } else {
+                    motorWinch.setPower(0);
+                }
 
 //            if(gamepad1.y){
 //                // Define a tolerance range for the motor position
@@ -210,4 +216,6 @@ public class FtcTeleOp extends LinearOpMode {
         }
 
     }
+
+}
 
