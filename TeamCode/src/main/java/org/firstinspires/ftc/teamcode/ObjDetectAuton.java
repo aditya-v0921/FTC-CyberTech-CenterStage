@@ -15,12 +15,12 @@ import java.util.List;
 public class ObjDetectAuton extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;
-    private static final String TFOD_MODEL_ASSET = "MyModelStoredAsAsset.tflite";
-    private static final String TFOD_MODEL_FILE = "/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
+    //private static final String TFOD_MODEL_ASSET = "MyModelStoredAsAsset.tflite";
+    private static final String TFOD_MODEL_FILE = "/sdcard/FIRST/tflitemodels/RedModel.tflite";
     private static final String[] LABELS = {
-            "Location1",
-            "Location2",
-            "Location3",
+            "Center",
+            "Left",
+            "Right",
     };
 
     private TfodProcessor tfod;
