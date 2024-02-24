@@ -33,15 +33,15 @@ public class FtcTeleOp extends LinearOpMode {
         DcMotorEx motorRightLinear = hardwareMap.get(DcMotorEx.class, "RLinearMotor");
         DcMotorEx motorIntake = hardwareMap.get(DcMotorEx.class, "Intake");
         DcMotor motorWinch = hardwareMap.get(DcMotor.class, "Winch");
-
-        Servo continuousServo = hardwareMap.get(Servo.class, "Outtake");
+        Servo outtakeServo = hardwareMap.get(Servo.class, "Outtake");
         Servo dropIntake = hardwareMap.get(Servo.class, "dropIntake");
-//        Servo fourBar = hardwareMap.get(Servo.class, "fourBar");
+        Servo fourBar = hardwareMap.get(Servo.class, "fourBar");
+        Servo drone = hardwareMap.get(Servo.class, "drone");
+        drone.setDirection(Servo.Direction.REVERSE);
 
-//        fourBar.setPosition(0.2); // Four bar Down
-//        System.out.print(dropIntake.getPosition());
-        dropIntake.setPosition(1); // Intake U
-        continuousServo.setPosition(0.5); // Stop Position
+        fourBar.setDirection(Servo.Direction.REVERSE);
+        fourBar.setPosition(0.78); // Four bar Down
+        dropIntake.setPosition(1); // Intake Up
 
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -80,21 +80,23 @@ public class FtcTeleOp extends LinearOpMode {
         boolean previousXState = false;
 
         //speed adjust thing
-        double speedAdjust = 1.5;
+        double speedAdjust = 1;
 
         waitForStart();
 
         while (opModeIsActive()) {
             // gamepad controls
             double y = -gamepad2.left_stick_y;
-            double x = gamepad2.left_stick_x;
+            double x = gamepad2.left_stick_x * -1; // Invert the x-axis input
             double rx = gamepad2.right_stick_x;
 
+            // Calculate motor power with corrected x input for strafing
             double frontRightPower = y - x - rx;
             double frontLeftPower = y + x + rx;
             double backLeftPower = y - x + rx;
             double backRightPower = y + x - rx;
 
+            // Set motor power with corrected values for strafing direction
             motorBackLeft.setPower(backLeftPower * speedAdjust);
             motorBackRight.setPower(backRightPower * speedAdjust);
             motorFrontLeft.setPower(frontLeftPower * speedAdjust);
@@ -135,87 +137,93 @@ public class FtcTeleOp extends LinearOpMode {
 
             }
 
-            if (gamepad1.a) {
-//                // Spin the servo continuously
-                continuousServo.setPosition(0); // adjust this value
+            if (gamepad2.y) {
+                outtakeServo.setPosition(1);
             } else {
-                continuousServo.setPosition(0.5); // stop position
-//            }
-//
-                if (gamepad1.b) {
-                    motorIntake.setPower(5);
-                    continuousServo.setPosition(1);
+                outtakeServo.setPosition(0.5);
+            }
 
-                } else {
-                    motorIntake.setPower(0);
-                    continuousServo.setPosition(0.5);
-                }
+            if (gamepad1.b) {
+                motorIntake.setPower(5);
+                drone.setPosition(0.2);
 
-                if (gamepad1.right_bumper) {
-                    dropIntake.setPosition(0.65);
-                    // moves the intake down
-                } else if (gamepad1.left_bumper) {
-                    // moves the intake up
-                    System.out.print(dropIntake.getPosition());
-                    dropIntake.setPosition(1);
-                }
+            } else {
+                motorIntake.setPower(0);
+                drone.setPosition(0.5);
+            }
+
+            if (gamepad1.right_bumper) {
+                dropIntake.setPosition(0.65);
+                // moves the intake down
+            } else if (gamepad1.left_bumper) {
+                // moves the intake up
+                dropIntake.setPosition(1);
+            }
 //
 //            if(gamepad1.x && !previousXState) {  // Check if X is pressed and was not pressed in the last cycle
 //                fourBar.setPosition(inOutchecker == 1 ? 0.8 : -0.2);
 //                inOutchecker = 1 - inOutchecker; // Toggle the state
 //            }
-                previousXState = gamepad1.x;
-                //0.6, 1.6
+//                previousXState = gamepad1.x;
+//                //0.6, 1.6
+            if (gamepad1.x) {
+                fourBar.setPosition(0.3);
+            }
 
-                if (gamepad2.a) {
-                    motorWinch.setPower(0.5);
-                } else if (gamepad2.b) {
-                    motorWinch.setPower(-0.5);
-                } else {
-                    motorWinch.setPower(0);
+            if (gamepad2.a) {
+                motorWinch.setPower(0.5);
+            } else if (gamepad2.b) {
+                motorWinch.setPower(-0.5);
+            } else {
+                motorWinch.setPower(0);
+            }
+
+            if (gamepad1.a) {
+                drone.setPosition(1);
+            } else {
+                drone.setPosition(0.5);
+            }
+
+            if (gamepad1.y) {
+                // Define a tolerance range for the motor position
+                int tolerance = 100; // You can adjust this value based on your setup
+
+                fourBar.setPosition(0.8);
+                sleep(500);
+
+                // Moving the linear motors back to their initial positions
+                while (true) { // Loop indefinitely
+                    // Determine direction for each motor
+                    double rightPower = (motorRightLinear.getCurrentPosition() < initialRightPos) ? -0.5 : 0.5;
+                    double leftPower = (motorLeftLinear.getCurrentPosition() < initalLeftPos) ? -0.5 : 0.5;
+
+                    // Check if motors are within the tolerance range of initial positions
+                    boolean rightInPosition = Math.abs(motorRightLinear.getCurrentPosition() - initialRightPos) <= tolerance;
+                    boolean leftInPosition = Math.abs(motorLeftLinear.getCurrentPosition() - initalLeftPos) <= tolerance;
+
+                    // Stop motors if they are in position
+                    if (rightInPosition) {
+                        rightPower = 0;
+                    }
+                    if (leftInPosition) {
+                        leftPower = 0;
+                    }
+
+                    // Set power to motors
+                    motorRightLinear.setPower(rightPower);
+                    motorLeftLinear.setPower(leftPower);
+
+                    // Break the loop if both motors are in position
+                    if (rightInPosition && leftInPosition) {
+                        break;
+                    }
                 }
-
-//            if(gamepad1.y){
-//                // Define a tolerance range for the motor position
-//                int tolerance = 50; // You can adjust this value based on your setup
-//
-//                fourBar.setPosition(-0.2);
-//                sleep(500);
-//
-//                // Moving the linear motors back to their initial positions
-//                while(true) { // Loop indefinitely
-//                    // Determine direction for each motor
-//                    double rightPower = (motorRightLinear.getCurrentPosition() < initialRightPos) ? -0.5 : 0.5;
-//                    double leftPower = (motorLeftLinear.getCurrentPosition() < initalLeftPos) ? -0.5 : 0.5;
-//
-//                    // Check if motors are within the tolerance range of initial positions
-//                    boolean rightInPosition = Math.abs(motorRightLinear.getCurrentPosition() - initialRightPos) <= tolerance;
-//                    boolean leftInPosition = Math.abs(motorLeftLinear.getCurrentPosition() - initalLeftPos) <= tolerance;
-//
-//                    // Stop motors if they are in position
-//                    if (rightInPosition) {
-//                        rightPower = 0;
-//                    }
-//                    if (leftInPosition) {
-//                        leftPower = 0;
-//                    }
-//
-//                    // Set power to motors
-//                    motorRightLinear.setPower(rightPower);
-//                    motorLeftLinear.setPower(leftPower);
-//
-//                    // Break the loop if both motors are in position
-//                    if (rightInPosition && leftInPosition) {
-//                        break;
-//                    }
-                //}
-                // Stop motors after breaking out of the loop
+                //Stop motors after breaking out of the loop
                 motorRightLinear.setPower(0);
                 motorLeftLinear.setPower(0);
             }
         }
 
     }
-
 }
-
+//}

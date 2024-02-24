@@ -1,35 +1,6 @@
-/* Copyright (c) 2019 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+// Import necessary libraries and packages
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -37,8 +8,18 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 import java.util.List;
+
 
 /*
  * This OpMode illustrates the basics of TensorFlow Object Detection,
@@ -47,21 +28,21 @@ import java.util.List;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
  */
-@TeleOp(name = "Concept: TensorFlow Object Detection", group = "Concept")
+@TeleOp(name = "Purple Pixel Red Test", group = "Concept")
 
-public class ConceptTensorFlowObjectDetection extends LinearOpMode {
+public class RedClose extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     // TFOD_MODEL_ASSET points to a model file stored in the project Asset location,
     // this is only used for Android Studio when using models in Assets.
-    private static final String TFOD_MODEL_ASSET = "MyModelStoredAsAsset.tflite";
+    private static final String TFOD_MODEL_ASSET = "RedDetectModel.tflite";
     // TFOD_MODEL_FILE points to a model file stored onboard the Robot Controller's storage,
     // this is used when uploading models directly to the RC using the model upload interface.
     //private static final String TFOD_MODEL_FILE = "/sdcard/FIRST/tflitemodels/myCustomModel.tflite";
     // Define the labels recognized in the model for TFOD (must be in training order!)
     private static final String[] LABELS = {
-            "Center", "Left", "Right"
+            "RedObj"
     };
 
     /**
@@ -77,9 +58,42 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
     @Override
     public void runOpMode() {
 
+        DcMotorEx motorLeftLinear = hardwareMap.get(DcMotorEx.class, "LLinearMotor");
+        DcMotorEx motorRightLinear = hardwareMap.get(DcMotorEx.class, "RLinearMotor");
+        DcMotorEx motorIntake = hardwareMap.get(DcMotorEx.class, "Intake");
+        DcMotor motorWinch = hardwareMap.get(DcMotor.class, "Winch");
+        Servo outtakeServo = hardwareMap.get(Servo.class, "Outtake");
+        Servo dropIntake = hardwareMap.get(Servo.class, "dropIntake");
+        Servo fourBar = hardwareMap.get(Servo.class, "fourBar");
+        Servo drone = hardwareMap.get(Servo.class, "drone");
+        drone.setDirection(Servo.Direction.REVERSE);
+
+        fourBar.setDirection(Servo.Direction.REVERSE);
+        fourBar.setPosition(0.78); // Four bar Down
+        dropIntake.setPosition(1); // Intake Up
+
+        motorRightLinear.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorLeftLinear.setDirection(DcMotorSimple.Direction.FORWARD);
+        motorIntake.setDirection(DcMotorSimple.Direction.FORWARD);
+        motorWinch.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        motorRightLinear.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        motorLeftLinear.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        motorIntake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorWinch.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        int initialRightPos = motorRightLinear.getCurrentPosition();
+        int initalLeftPos = motorLeftLinear.getCurrentPosition();
+
+        int curRightPos = motorRightLinear.getCurrentPosition();
+        int curLeftPos = motorLeftLinear.getCurrentPosition();
+
+        // Initialize TFOD and Vision Portal
         initTfod();
 
-        // Wait for the DS start button to be touched.
+        // Initialize SampleMecanumDrive
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch Play to start OpMode");
         telemetry.update();
@@ -87,28 +101,47 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
 
         if (opModeIsActive()) {
             while (opModeIsActive()) {
+                // Get the position from TensorFlow detection
+                String detectedPosition = telemetryTfod();
 
-                telemetryTfod();
+                if (detectedPosition.equals("center")) {
+                    // Define and follow trajectory if the detected object is in the center
+                    Trajectory trajectory = drive.trajectoryBuilder(new Pose2d())
+                            .forward(24) // Adjust your trajectory as needed
+                            .build();
 
-                // Push telemetry to the Driver Station.
-                telemetry.update();
+                    drive.followTrajectory(trajectory);
+                    visionPortal.close();
 
-                // Save CPU resources; can resume streaming when needed.
-                if (gamepad1.dpad_down) {
-                    visionPortal.stopStreaming();
-                } else if (gamepad1.dpad_up) {
-                    visionPortal.resumeStreaming();
+                    // Optionally, break out of the loop if you only want to execute this once
+                    break;
+                }
+                else if(detectedPosition.equals("left")) {
+                    Trajectory trajectory = drive.trajectoryBuilder(new Pose2d())
+                            .splineTo(new Vector2d(29, 5), Math.toRadians(90)) // Adjust your trajectory as needed
+                            .build();
+
+                    drive.followTrajectory(trajectory);
+                    visionPortal.close();
+                }
+                else{
+                    Trajectory trajectory = drive.trajectoryBuilder(new Pose2d())
+                            .splineTo(new Vector2d(29, -5), Math.toRadians(270)) // Adjust your trajectory as needed
+                            .build();
+
+                    drive.followTrajectory(trajectory);
+                    visionPortal.close();
                 }
 
-                // Share the CPU.
-                sleep(20);
+
+                telemetry.update();
+                sleep(20); // Small delay to save resources
             }
         }
 
-        // Save more CPU resources when camera is no longer needed.
+        // Close Vision Portal to save resources
         visionPortal.close();
-
-    }   // end runOpMode()
+    }
 
     /**
      * Initialize the TensorFlow Object Detection processor.
@@ -141,7 +174,7 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
 
         // Set the camera (webcam vs. built-in RC phone camera).
         if (USE_WEBCAM) {
-            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 123"));
         } else {
             builder.setCamera(BuiltinCameraDirection.BACK);
         }
@@ -177,22 +210,31 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
     /**
      * Add telemetry about TensorFlow Object Detection (TFOD) recognitions.
      */
-    private void telemetryTfod() {
-
+    private String telemetryTfod() {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
 
-        // Step through the list of recognitions and display info for each one.
+        // Assuming a 640x480 resolution; adjust this according to your actual camera resolution
+        final double IMAGE_WIDTH = 640.0;
+
+        String realPos = "right"; // Default position is "right"
+
         for (Recognition recognition : currentRecognitions) {
-            double x = (recognition.getLeft() + recognition.getRight()) / 2 ;
-            double y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
+            double centerX = (recognition.getLeft() + recognition.getRight()) / 2.0;
 
-            telemetry.addData(""," ");
+            // Determine the object's position based on its centerX
+            realPos = centerX < (IMAGE_WIDTH / 2) ? "left" : "center";
+
+            telemetry.addData("", " ");
             telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-            telemetry.addData("- Position", "%.0f / %.0f", x, y);
+            telemetry.addData("- Position", "X: %.0f - %s", centerX, realPos);
             telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
-        }   // end for() loop
+        }
 
-    }   // end method telemetryTfod()
+        return realPos;
+    }
 
-}   // end class
+
+}   // end method telemetryTfod()
+
+  // end class
